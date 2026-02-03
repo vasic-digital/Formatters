@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -770,4 +771,164 @@ func TestBatchFormat_DefaultConcurrency(t *testing.T) {
 	results, err := BatchFormat(ctx, exec, reqs, 0)
 	assert.NoError(t, err)
 	assert.Len(t, results, 1)
+}
+
+func TestBatchFormat_ExecuteError(t *testing.T) {
+	testCases := []struct {
+		name          string
+		errorIndices  []int
+		expectedError string
+	}{
+		{
+			name:          "single error",
+			errorIndices:  []int{0},
+			expectedError: "batch format error",
+		},
+		{
+			name:          "multiple errors returns first",
+			errorIndices:  []int{0, 2},
+			expectedError: "batch format error",
+		},
+		{
+			name:          "error in middle",
+			errorIndices:  []int{1},
+			expectedError: "batch format error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := newTestRegistry(t)
+			mock := registerMock(t, reg, "errfmt", []string{"python"})
+
+			errorSet := make(map[int]bool)
+			for _, idx := range tc.errorIndices {
+				errorSet[idx] = true
+			}
+
+			callCount := 0
+			var mu sync.Mutex
+			mock.formatFunc = func(
+				ctx context.Context, req *formatter.FormatRequest,
+			) (*formatter.FormatResult, error) {
+				mu.Lock()
+				currentCall := callCount
+				callCount++
+				mu.Unlock()
+
+				if errorSet[currentCall] {
+					return nil, fmt.Errorf("batch format error")
+				}
+				return &formatter.FormatResult{
+					Content: req.Content + " formatted",
+					Success: true,
+				}, nil
+			}
+
+			exec := New(reg, DefaultExecutorConfig())
+			ctx := context.Background()
+
+			reqs := []*formatter.FormatRequest{
+				{Content: "a=1", Language: "python"},
+				{Content: "b=2", Language: "python"},
+				{Content: "c=3", Language: "python"},
+			}
+
+			results, err := BatchFormat(ctx, exec, reqs, 1)
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tc.expectedError)
+			assert.Len(t, results, 3)
+		})
+	}
+}
+
+func TestTimeoutMiddleware_ErrorChannel(t *testing.T) {
+	testCases := []struct {
+		name          string
+		errorMsg      string
+		expectedError string
+	}{
+		{
+			name:          "formatter returns error",
+			errorMsg:      "formatter execution failed",
+			expectedError: "formatter execution failed",
+		},
+		{
+			name:          "syntax error",
+			errorMsg:      "syntax error in source",
+			expectedError: "syntax error in source",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			errMsg := tc.errorMsg
+			mw := TimeoutMiddleware(5 * time.Second)
+
+			base := func(
+				ctx context.Context, f formatter.Formatter,
+				req *formatter.FormatRequest,
+			) (*formatter.FormatResult, error) {
+				return nil, fmt.Errorf("%s", errMsg)
+			}
+
+			wrapped := mw(base)
+			mock := newMockFormatter("test", "1.0", []string{"go"})
+			_, err := wrapped(
+				context.Background(), mock,
+				&formatter.FormatRequest{Content: "code"},
+			)
+
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
+}
+
+func TestValidationMiddleware_NextReturnsError(t *testing.T) {
+	testCases := []struct {
+		name          string
+		errorMsg      string
+		expectedError string
+	}{
+		{
+			name:          "formatter error",
+			errorMsg:      "formatter crashed",
+			expectedError: "formatter crashed",
+		},
+		{
+			name:          "binary not found",
+			errorMsg:      "executable not found",
+			expectedError: "executable not found",
+		},
+		{
+			name:          "permission denied",
+			errorMsg:      "permission denied",
+			expectedError: "permission denied",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			errMsg := tc.errorMsg
+			mw := ValidationMiddleware()
+
+			base := func(
+				ctx context.Context, f formatter.Formatter,
+				req *formatter.FormatRequest,
+			) (*formatter.FormatResult, error) {
+				return nil, fmt.Errorf("%s", errMsg)
+			}
+
+			wrapped := mw(base)
+			mock := newMockFormatter("test", "1.0", []string{"go"})
+			_, err := wrapped(
+				context.Background(), mock,
+				&formatter.FormatRequest{Content: "valid code"},
+			)
+
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
 }

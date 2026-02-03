@@ -375,3 +375,134 @@ func TestRegistry_GetMetadata_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
+
+func TestRegistry_RegisterWithMetadata_Duplicate(t *testing.T) {
+	reg := New()
+
+	f1 := newMockFormatter("black", "26.1a1", []string{"python"})
+	metadata1 := &formatter.FormatterMetadata{
+		Name:    "black",
+		Version: "26.1a1",
+		Type:    formatter.FormatterTypeNative,
+	}
+
+	err := reg.RegisterWithMetadata(f1, metadata1)
+	require.NoError(t, err)
+
+	// Attempt to register another formatter with the same name
+	f2 := newMockFormatter("black", "27.0.0", []string{"python"})
+	metadata2 := &formatter.FormatterMetadata{
+		Name:    "black",
+		Version: "27.0.0",
+		Type:    formatter.FormatterTypeNative,
+	}
+
+	err = reg.RegisterWithMetadata(f2, metadata2)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "already registered")
+
+	// Verify only the first formatter is registered
+	assert.Equal(t, 1, reg.Count())
+	got, err := reg.Get("black")
+	require.NoError(t, err)
+	assert.Equal(t, "26.1a1", got.Version())
+}
+
+func TestRegisterDefault(t *testing.T) {
+	testCases := []struct {
+		name        string
+		formatters  []struct{ name, version string }
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "register single formatter",
+			formatters: []struct{ name, version string }{
+				{"test-default-formatter-1", "1.0.0"},
+			},
+			expectError: false,
+		},
+		{
+			name: "register duplicate formatter",
+			formatters: []struct{ name, version string }{
+				{"test-default-formatter-2", "1.0.0"},
+				{"test-default-formatter-2", "2.0.0"},
+			},
+			expectError: true,
+			errorMsg:    "already registered",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var lastErr error
+			for _, f := range tc.formatters {
+				mock := newMockFormatter(f.name, f.version, []string{"test"})
+				lastErr = RegisterDefault(mock)
+			}
+
+			if tc.expectError {
+				assert.Error(t, lastErr)
+				assert.Contains(t, lastErr.Error(), tc.errorMsg)
+			} else {
+				assert.NoError(t, lastErr)
+			}
+
+			// Clean up: remove from default registry
+			for _, f := range tc.formatters {
+				_ = Default().Remove(f.name)
+			}
+		})
+	}
+}
+
+func TestGetDefault(t *testing.T) {
+	testCases := []struct {
+		name          string
+		registerName  string
+		lookupName    string
+		expectError   bool
+		errorMsg      string
+		expectVersion string
+	}{
+		{
+			name:          "get existing formatter",
+			registerName:  "test-get-default-1",
+			lookupName:    "test-get-default-1",
+			expectError:   false,
+			expectVersion: "1.0.0",
+		},
+		{
+			name:         "get non-existent formatter",
+			registerName: "test-get-default-2",
+			lookupName:   "nonexistent-formatter",
+			expectError:  true,
+			errorMsg:     "not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Register formatter
+			mock := newMockFormatter(tc.registerName, "1.0.0", []string{"test"})
+			err := RegisterDefault(mock)
+			require.NoError(t, err)
+
+			// Attempt to get formatter
+			f, err := GetDefault(tc.lookupName)
+
+			if tc.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errorMsg)
+				assert.Nil(t, f)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, f)
+				assert.Equal(t, tc.expectVersion, f.Version())
+			}
+
+			// Clean up: remove from default registry
+			_ = Default().Remove(tc.registerName)
+		})
+	}
+}

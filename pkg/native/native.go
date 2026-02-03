@@ -11,12 +11,20 @@ import (
 	"digital.vasic.formatters/pkg/formatter"
 )
 
+// FormatFunc is the signature for the format function.
+// This allows injection for testing.
+type FormatFunc func(
+	ctx context.Context,
+	req *formatter.FormatRequest,
+) (*formatter.FormatResult, error)
+
 // NativeFormatter implements a formatter using a native binary.
 type NativeFormatter struct {
 	*formatter.BaseFormatter
 	binaryPath string
 	args       []string
 	stdinFlag  bool
+	formatFunc FormatFunc // allows injection for testing
 }
 
 // NewNativeFormatter creates a new native binary formatter.
@@ -88,14 +96,25 @@ func (n *NativeFormatter) Format(
 	}, nil
 }
 
+// SetFormatFuncForTest allows injecting a custom format function for testing.
+// This should only be used in tests.
+func (n *NativeFormatter) SetFormatFuncForTest(fn FormatFunc) {
+	n.formatFunc = fn
+}
+
 // FormatBatch formats multiple requests sequentially.
 func (n *NativeFormatter) FormatBatch(
 	ctx context.Context, reqs []*formatter.FormatRequest,
 ) ([]*formatter.FormatResult, error) {
 	results := make([]*formatter.FormatResult, len(reqs))
 
+	formatFn := n.Format
+	if n.formatFunc != nil {
+		formatFn = n.formatFunc
+	}
+
 	for i, req := range reqs {
-		result, err := n.Format(ctx, req)
+		result, err := formatFn(ctx, req)
 		if err != nil {
 			return nil, err
 		}
