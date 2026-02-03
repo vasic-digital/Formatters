@@ -1,0 +1,66 @@
+sequenceDiagram
+    participant Client
+    participant Executor
+    participant Middleware as Middleware Chain
+    participant Registry
+    participant Formatter as Formatter (native/service)
+    participant Cache as InMemoryCache
+
+    Client->>+Executor: Execute(ctx, FormatRequest)
+
+    Note over Executor: Resolve formatter from<br/>Language or FilePath
+
+    alt Language specified
+        Executor->>+Registry: GetByLanguage(language)
+        Registry-->>-Executor: []Formatter
+    else FilePath specified
+        Executor->>+Registry: DetectFormatter(filePath)
+        Registry->>Registry: DetectLanguageFromPath(filePath)
+        Registry->>Registry: GetByLanguage(detected)
+        Registry-->>-Executor: Formatter
+    end
+
+    Note over Executor: Build middleware chain
+
+    Executor->>+Middleware: executeFunc(ctx, formatter, req)
+
+    Note over Middleware: ValidationMiddleware:<br/>Check non-empty input
+
+    Middleware->>Middleware: TimeoutMiddleware: ctx with deadline
+
+    Middleware->>Middleware: RetryMiddleware: attempt loop
+
+    alt Cache enabled (application-level)
+        Middleware->>+Cache: Get(req)
+        Cache-->>-Middleware: (result, hit)
+        alt Cache hit
+            Middleware-->>Executor: cached FormatResult
+        end
+    end
+
+    Middleware->>+Formatter: Format(ctx, req)
+
+    alt NativeFormatter
+        Formatter->>Formatter: buildArgs(req)
+        Formatter->>Formatter: exec.CommandContext(binary, args)
+        Formatter->>Formatter: pipe stdin, capture stdout/stderr
+        Formatter->>Formatter: computeLineChanges()
+    else ServiceFormatter
+        Formatter->>Formatter: Marshal ServiceFormatRequest
+        Formatter->>Formatter: POST endpoint/format
+        Formatter->>Formatter: Unmarshal ServiceFormatResponse
+    end
+
+    Formatter-->>-Middleware: FormatResult
+
+    Note over Middleware: ValidationMiddleware:<br/>Check non-empty output
+
+    alt Cache enabled (application-level)
+        Middleware->>Cache: Set(req, result)
+    end
+
+    Middleware-->>-Executor: FormatResult
+
+    Note over Executor: Set result.Duration
+
+    Executor-->>-Client: FormatResult

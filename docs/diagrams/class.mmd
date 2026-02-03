@@ -1,0 +1,199 @@
+classDiagram
+    class Formatter {
+        <<interface>>
+        +Name() string
+        +Version() string
+        +Languages() []string
+        +SupportsStdin() bool
+        +SupportsInPlace() bool
+        +SupportsCheck() bool
+        +SupportsConfig() bool
+        +Format(ctx, req) (FormatResult, error)
+        +FormatBatch(ctx, reqs) ([]FormatResult, error)
+        +HealthCheck(ctx) error
+        +ValidateConfig(config) error
+        +DefaultConfig() map
+    }
+
+    class FormatCache {
+        <<interface>>
+        +Get(req) (FormatResult, bool)
+        +Set(req, result)
+        +Invalidate(req)
+    }
+
+    class BaseFormatter {
+        -name string
+        -version string
+        -languages []string
+        -metadata *FormatterMetadata
+        +NewBaseFormatter(metadata) *BaseFormatter
+        +Name() string
+        +Version() string
+        +Languages() []string
+        +SupportsStdin() bool
+        +SupportsInPlace() bool
+        +SupportsCheck() bool
+        +SupportsConfig() bool
+        +DefaultConfig() map
+        +ValidateConfig(config) error
+        +Metadata() *FormatterMetadata
+    }
+
+    class NativeFormatter {
+        -binaryPath string
+        -args []string
+        -stdinFlag bool
+        +NewNativeFormatter(metadata, binaryPath, args, stdinFlag) *NativeFormatter
+        +NewGoFormatter() *NativeFormatter
+        +NewPythonFormatter() *NativeFormatter
+        +NewJSFormatter() *NativeFormatter
+        +NewRustFormatter() *NativeFormatter
+        +NewSQLFormatter() *NativeFormatter
+        +Format(ctx, req) (FormatResult, error)
+        +FormatBatch(ctx, reqs) ([]FormatResult, error)
+        +HealthCheck(ctx) error
+    }
+
+    class ServiceFormatter {
+        -metadata *FormatterMetadata
+        -config Config
+        -httpClient *http.Client
+        +NewServiceFormatter(metadata, config) *ServiceFormatter
+        +Name() string
+        +Version() string
+        +Languages() []string
+        +Format(ctx, req) (FormatResult, error)
+        +FormatBatch(ctx, reqs) ([]FormatResult, error)
+        +HealthCheck(ctx) error
+        +GetMetadata() *FormatterMetadata
+    }
+
+    class Registry {
+        -mu sync.RWMutex
+        -formatters map
+        -byLanguage map
+        -metadata map
+        +New() *Registry
+        +Default() *Registry
+        +Register(f) error
+        +RegisterWithMetadata(f, metadata) error
+        +Get(name) (Formatter, error)
+        +GetByLanguage(language) []Formatter
+        +List() []string
+        +Remove(name) error
+        +Count() int
+        +GetMetadata(name) (FormatterMetadata, error)
+        +ListByType(ftype) []string
+        +DetectFormatter(filePath) (Formatter, error)
+        +HealthCheckAll(ctx) map
+    }
+
+    class Executor {
+        -registry *Registry
+        -middleware []Middleware
+        -config Config
+        +New(reg, config) *Executor
+        +Execute(ctx, req) (FormatResult, error)
+        +ExecuteBatch(ctx, reqs) ([]FormatResult, error)
+        +Use(middleware)
+    }
+
+    class Pipeline {
+        -steps []Formatter
+        +NewPipeline(steps) *Pipeline
+        +Execute(ctx, req) (FormatResult, error)
+    }
+
+    class InMemoryCache {
+        -mu sync.RWMutex
+        -cache map
+        -config Config
+        -stopCleanup chan
+        +NewInMemoryCache(config) *InMemoryCache
+        +Get(req) (FormatResult, bool)
+        +Set(req, result)
+        +Invalidate(req)
+        +Clear()
+        +Size() int
+        +Stop()
+        +Stats() CacheStats
+    }
+
+    class FormatRequest {
+        +Content string
+        +FilePath string
+        +Language string
+        +Config map
+        +LineLength int
+        +IndentSize int
+        +UseTabs bool
+        +CheckOnly bool
+        +Timeout time.Duration
+        +RequestID string
+    }
+
+    class FormatResult {
+        +Content string
+        +Changed bool
+        +FormatterName string
+        +FormatterVersion string
+        +Duration time.Duration
+        +Success bool
+        +Error error
+        +Warnings []string
+        +Stats *FormatStats
+    }
+
+    class FormatStats {
+        +LinesTotal int
+        +LinesChanged int
+        +BytesTotal int
+        +BytesChanged int
+        +Violations int
+    }
+
+    class FormatterMetadata {
+        +Name string
+        +Type FormatterType
+        +Architecture string
+        +Version string
+        +Languages []string
+        +License string
+        +Performance string
+        +SupportsStdin bool
+        +SupportsInPlace bool
+        +SupportsCheck bool
+        +SupportsConfig bool
+    }
+
+    class CacheStats {
+        +Size int
+        +MaxEntries int
+        +TTL time.Duration
+    }
+
+    Formatter <|.. BaseFormatter : implements (partial)
+    Formatter <|.. NativeFormatter : implements
+    Formatter <|.. ServiceFormatter : implements
+    FormatCache <|.. InMemoryCache : implements
+
+    BaseFormatter <|-- NativeFormatter : embeds
+    NativeFormatter ..> FormatRequest : uses
+    NativeFormatter ..> FormatResult : returns
+    ServiceFormatter ..> FormatRequest : uses
+    ServiceFormatter ..> FormatResult : returns
+    ServiceFormatter ..> FormatterMetadata : has
+
+    Registry o-- Formatter : manages 0..*
+    Registry o-- FormatterMetadata : stores 0..*
+    Executor --> Registry : resolves from
+    Executor ..> Formatter : executes
+    Pipeline o-- Formatter : chains 0..*
+
+    InMemoryCache ..> FormatRequest : keys by
+    InMemoryCache ..> FormatResult : caches
+    InMemoryCache ..> CacheStats : reports
+
+    FormatResult *-- FormatStats : contains 0..1
+    BaseFormatter *-- FormatterMetadata : contains 1

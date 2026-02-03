@@ -1,0 +1,36 @@
+graph TD
+    subgraph "digital.vasic.formatters"
+        formatter["pkg/formatter<br/><i>Core interfaces & types</i><br/>Formatter, BaseFormatter,<br/>FormatRequest, FormatResult,<br/>FormatterMetadata, FormatterType"]
+
+        registry["pkg/registry<br/><i>Formatter discovery</i><br/>Registry, DetectLanguageFromPath,<br/>HealthCheckAll, Default singleton"]
+
+        native["pkg/native<br/><i>System binary formatters</i><br/>NativeFormatter,<br/>gofmt, black, prettier,<br/>rustfmt, sqlformat"]
+
+        service["pkg/service<br/><i>HTTP service formatters</i><br/>ServiceFormatter, Config,<br/>ServiceFormatRequest,<br/>ServiceFormatResponse"]
+
+        executor["pkg/executor<br/><i>Execution engine</i><br/>Executor, Pipeline, BatchFormat,<br/>TimeoutMiddleware,<br/>RetryMiddleware,<br/>ValidationMiddleware"]
+
+        cache["pkg/cache<br/><i>Result caching</i><br/>FormatCache, InMemoryCache,<br/>CacheStats, Config"]
+    end
+
+    registry --> formatter
+    native --> formatter
+    service --> formatter
+    executor --> formatter
+    executor --> registry
+    cache --> formatter
+
+    subgraph "External"
+        binaries["System Binaries<br/>gofmt, black, prettier,<br/>rustfmt, sqlformat"]
+        httpservices["HTTP Services<br/>Containerized formatters<br/>POST /format, GET /health"]
+    end
+
+    native -.->|exec.CommandContext| binaries
+    service -.->|net/http| httpservices
+
+    style formatter fill:#2d5a87,stroke:#1a3a5c,color:#ffffff
+    style registry fill:#2d7a4f,stroke:#1a5a3a,color:#ffffff
+    style native fill:#7a4f2d,stroke:#5a3a1a,color:#ffffff
+    style service fill:#7a2d5a,stroke:#5a1a3a,color:#ffffff
+    style executor fill:#5a2d7a,stroke:#3a1a5a,color:#ffffff
+    style cache fill:#2d7a7a,stroke:#1a5a5a,color:#ffffff
