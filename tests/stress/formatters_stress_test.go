@@ -66,7 +66,7 @@ func (f *stressFormatter) HealthCheck(_ context.Context) error {
 
 func TestConcurrentRegistryAccess(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -101,7 +101,7 @@ func TestConcurrentRegistryAccess(t *testing.T) {
 
 func TestConcurrentExecution(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -142,7 +142,7 @@ func TestConcurrentExecution(t *testing.T) {
 
 func TestConcurrentCacheOperations(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	c := cache.NewInMemoryCache(cache.Config{
@@ -180,7 +180,7 @@ func TestConcurrentCacheOperations(t *testing.T) {
 
 func TestConcurrentHealthChecks(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -214,7 +214,7 @@ func TestConcurrentHealthChecks(t *testing.T) {
 
 func TestConcurrentBatchFormat(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -250,7 +250,7 @@ func TestConcurrentBatchFormat(t *testing.T) {
 
 func TestConcurrentRegistryModification(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()

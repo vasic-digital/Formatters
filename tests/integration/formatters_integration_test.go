@@ -65,7 +65,7 @@ func (m *mockFormatter) HealthCheck(_ context.Context) error {
 
 func TestRegistryExecutorIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -91,7 +91,7 @@ func TestRegistryExecutorIntegration(t *testing.T) {
 
 func TestRegistryExecutorWithMiddlewareIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -115,7 +115,7 @@ func TestRegistryExecutorWithMiddlewareIntegration(t *testing.T) {
 
 func TestRegistryCacheIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -151,7 +151,7 @@ func TestRegistryCacheIntegration(t *testing.T) {
 
 func TestPipelineIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	step1 := newMockFormatter("step1", []string{"go"})
@@ -175,7 +175,7 @@ func TestPipelineIntegration(t *testing.T) {
 
 func TestExecutorBatchIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -203,7 +203,7 @@ func TestExecutorBatchIntegration(t *testing.T) {
 
 func TestHealthCheckAllIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()

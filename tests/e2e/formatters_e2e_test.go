@@ -79,7 +79,7 @@ func (f *testFormatter) HealthCheck(_ context.Context) error {
 
 func TestFullFormattingWorkflowE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -113,7 +113,7 @@ func TestFullFormattingWorkflowE2E(t *testing.T) {
 
 func TestLanguageDetectionAndFormattingE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -142,7 +142,7 @@ func TestLanguageDetectionAndFormattingE2E(t *testing.T) {
 
 func TestCheckOnlyModeE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -164,7 +164,7 @@ func TestCheckOnlyModeE2E(t *testing.T) {
 
 func TestCacheHitAndMissE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	c := cache.NewInMemoryCache(cache.Config{
@@ -201,7 +201,7 @@ func TestCacheHitAndMissE2E(t *testing.T) {
 
 func TestRegistryMetadataWorkflowE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -228,7 +228,7 @@ func TestRegistryMetadataWorkflowE2E(t *testing.T) {
 
 func TestRegistryRemoveAndReAddE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
