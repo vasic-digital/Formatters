@@ -1,5 +1,25 @@
 # CLAUDE.md
 
+
+## Definition of Done
+
+This module inherits HelixAgent's universal Definition of Done — see the root
+`CLAUDE.md` and `docs/development/definition-of-done.md`. In one line: **no
+task is done without pasted output from a real run of the real system in the
+same session as the change.** Coverage and green suites are not evidence.
+
+### Acceptance demo for this module
+
+<!-- TODO: replace this block with the exact command(s) that exercise this
+     module end-to-end against real dependencies, and the expected output.
+     The commands must run the real artifact (built binary, deployed
+     container, real service) — no in-process fakes, no mocks, no
+     `httptest.NewServer`, no Robolectric, no JSDOM as proof of done. -->
+
+```bash
+# TODO
+```
+
 This file provides guidance to Claude Code when working with the Formatters module.
 
 ## Module Overview
@@ -44,6 +64,9 @@ This file provides guidance to Claude Code when working with the Formatters modu
 - `InMemoryCache` with SHA-256 content hash keys
 - TTL expiration, max entries, periodic cleanup
 
+### pkg/textformat - Cross-platform text format types
+- Types and interfaces mirroring Formatters-KMP for text format detection, parsing, and registry; used to share format definitions across Go and Kotlin consumers
+
 ## Build & Test
 
 ```bash
@@ -63,3 +86,12 @@ go test ./pkg/cache/...         # Cache tests
 - Line length <= 100 chars
 - Table-driven tests with testify
 - No external dependencies beyond stretchr/testify
+
+## Integration Seams
+
+| Direction | Sibling modules |
+|-----------|-----------------|
+| Upstream (this module imports) | none |
+| Downstream (these import this module) | HelixLLM |
+
+*Siblings* means other project-owned modules at the HelixAgent repo root. The root HelixAgent app and external systems are not listed here — the list above is intentionally scoped to module-to-module seams, because drift *between* sibling modules is where the "tests pass, product broken" class of bug most often lives. See root `CLAUDE.md` for the rules that keep these seams contract-tested.
