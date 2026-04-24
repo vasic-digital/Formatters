@@ -10,15 +10,12 @@ same session as the change.** Coverage and green suites are not evidence.
 
 ### Acceptance demo for this module
 
-<!-- TODO: replace this block with the exact command(s) that exercise this
-     module end-to-end against real dependencies, and the expected output.
-     The commands must run the real artifact (built binary, deployed
-     container, real service) — no in-process fakes, no mocks, no
-     `httptest.NewServer`, no Robolectric, no JSDOM as proof of done. -->
-
 ```bash
-# TODO
+# Native Go + Python formatters through the registry/executor/cache pipeline
+cd Formatters && GOMAXPROCS=2 nice -n 19 go test -count=1 -race -v ./pkg/...
 ```
+Expect: PASS; exercises `registry.New`, `executor.New` with `TimeoutMiddleware`, and `native.NewGoFormatter` per `Formatters/README.md`. Service formatters additionally need their Docker images built (`docker compose -f docker/formatters/docker-compose.yml up -d`).
+
 
 This file provides guidance to Claude Code when working with the Formatters module.
 
