@@ -64,7 +64,7 @@ func (f *securityFormatter) HealthCheck(_ context.Context) error {
 
 func TestEmptyContentRejection(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -84,7 +84,7 @@ func TestEmptyContentRejection(t *testing.T) {
 
 func TestMissingLanguageAndPathRejection(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -102,7 +102,7 @@ func TestMissingLanguageAndPathRejection(t *testing.T) {
 
 func TestDuplicateRegistration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -116,7 +116,7 @@ func TestDuplicateRegistration(t *testing.T) {
 
 func TestLargeInputHandling(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -139,7 +139,7 @@ func TestLargeInputHandling(t *testing.T) {
 
 func TestCacheEvictionSafety(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	c := cache.NewInMemoryCache(cache.Config{
@@ -165,7 +165,7 @@ func TestCacheEvictionSafety(t *testing.T) {
 
 func TestRegistryRemoveNonExistent(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -176,7 +176,7 @@ func TestRegistryRemoveNonExistent(t *testing.T) {
 
 func TestContextCancellationHandling(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	reg := registry.New()
@@ -198,7 +198,7 @@ func TestContextCancellationHandling(t *testing.T) {
 
 func TestLanguageDetectionUnknownExtension(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	detected := registry.DetectLanguageFromPath("file.unknownext123")
