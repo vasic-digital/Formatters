@@ -259,7 +259,7 @@ func TestNewSQLFormatter(t *testing.T) {
 func TestNativeFormatter_Format_Success(t *testing.T) {
 	// Skip if cat is not available
 	if _, err := exec.LookPath("cat"); err != nil {
-		t.Skip("cat not available")  // SKIP-OK: #legacy-untriaged
+		t.Skip("cat not available")
 	}
 
 	testCases := []struct {
@@ -331,7 +331,7 @@ func TestNativeFormatter_Format_Success(t *testing.T) {
 func TestNativeFormatter_Format_Success_WithStats(t *testing.T) {
 	// Skip if cat is not available
 	if _, err := exec.LookPath("cat"); err != nil {
-		t.Skip("cat not available")  // SKIP-OK: #legacy-untriaged
+		t.Skip("cat not available")
 	}
 
 	// Create a formatter using cat
@@ -369,7 +369,7 @@ func TestNativeFormatter_Format_Success_WithStats(t *testing.T) {
 func TestNativeFormatter_HealthCheck_Success(t *testing.T) {
 	// Skip if cat is not available
 	if _, err := exec.LookPath("cat"); err != nil {
-		t.Skip("cat not available")  // SKIP-OK: #legacy-untriaged
+		t.Skip("cat not available")
 	}
 
 	// cat --version works on most systems
@@ -394,7 +394,7 @@ func TestNativeFormatter_HealthCheck_Success(t *testing.T) {
 func TestNativeFormatter_HealthCheck_WithTrueBinary(t *testing.T) {
 	// /bin/true always exits 0, which is perfect for testing success path
 	if _, err := exec.LookPath("true"); err != nil {
-		t.Skip("true binary not available")  // SKIP-OK: #legacy-untriaged
+		t.Skip("true binary not available")
 	}
 
 	metadata := &formatter.FormatterMetadata{
@@ -413,7 +413,7 @@ func TestNativeFormatter_HealthCheck_WithTrueBinary(t *testing.T) {
 func TestNativeFormatter_FormatBatch_Success(t *testing.T) {
 	// Skip if cat is not available
 	if _, err := exec.LookPath("cat"); err != nil {
-		t.Skip("cat not available")  // SKIP-OK: #legacy-untriaged
+		t.Skip("cat not available")
 	}
 
 	// Use cat formatter
