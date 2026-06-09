@@ -125,9 +125,16 @@ func (n *NativeFormatter) FormatBatch(
 }
 
 // HealthCheck checks if the formatter binary is available.
-func (n *NativeFormatter) HealthCheck(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, n.binaryPath, "--version")
-	if err := cmd.Run(); err != nil {
+//
+// Availability is verified cross-platform via exec.LookPath, which resolves the
+// binary on PATH (or validates an absolute/relative path is an executable file).
+// This is portable across GNU, BSD/macOS (Darwin) and Windows. A "--version"
+// probe is NOT used: BSD/macOS coreutils such as `cat` do not recognise the
+// `--version` flag (they treat it as a filename and exit non-zero), and many
+// formatter binaries do not implement `--version` at all — so a version probe
+// produces false "unavailable" results on those platforms (§11.4.81).
+func (n *NativeFormatter) HealthCheck(_ context.Context) error {
+	if _, err := exec.LookPath(n.binaryPath); err != nil {
 		return fmt.Errorf(
 			"formatter binary not available: %w", err,
 		)

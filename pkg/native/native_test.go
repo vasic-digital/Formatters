@@ -372,7 +372,9 @@ func TestNativeFormatter_HealthCheck_Success(t *testing.T) {
 		t.Skip("cat not available") // SKIP-OK: #missing-binary-cat
 	}
 
-	// cat --version works on most systems
+	// HealthCheck resolves the binary on PATH cross-platform (exec.LookPath),
+	// so `cat` is reported available on GNU and BSD/macOS alike (no --version
+	// probe — BSD `cat` rejects --version) (§11.4.81).
 	metadata := &formatter.FormatterMetadata{
 		Name:      "cat-formatter",
 		Type:      formatter.FormatterTypeBuiltin,
@@ -405,7 +407,7 @@ func TestNativeFormatter_HealthCheck_WithTrueBinary(t *testing.T) {
 	f := NewNativeFormatter(metadata, "true", nil, false)
 	ctx := context.Background()
 
-	// true --version exits 0 (just ignores the flag)
+	// `true` is resolvable on PATH, so HealthCheck (exec.LookPath) succeeds.
 	err := f.HealthCheck(ctx)
 	assert.NoError(t, err)
 }
